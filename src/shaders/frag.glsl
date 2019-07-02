@@ -5,22 +5,22 @@ const float MIN_DIST = 0.0;
 const float MAX_DIST = 100.0;
 const float EPSILON = 0.0001;
 const int MAX_ITERS = 8;
-const float MOUSE_POS_DIV = 3000.0;
 const float HALF_PI =  1.5707964;
 
-const float time = 5.0;
 const int iterations = 2;
-const float distance = 30.0;
+const float distance = 12.0;
 const float noise = 0.1;
-const float displ = 0.5;
-const float rota = 0.5;
+const float displ = 1.75;
+const float rota = 0.8;
 const float light = 0.5;
 const float ncolor = 0.0;
-const float round = 0.0;
-const float twist = 0.0;
-const float size = 5.0;
-const vec2 mouse_pos = vec2(0.5, 0.5);
-const vec2 dimensions = vec2(500.0, 500.0);
+const float round = 0.6;
+const float twist = 0.5;
+const float size = 1.0;
+const vec2 mouse_pos = vec2(0.0, 0.0);
+const vec2 dimensions = vec2(1000.0, 1000.0);
+
+uniform vec4 time;
 
 varying vec3 vposition;
 varying vec3 vcolor;
@@ -46,33 +46,8 @@ float iter_cyl(vec3 p, float init_d) {
     return d;
 }
 
-float iter_box(vec3 p, float init_d) {
-    float d = init_d;
-    float s = 1.0;
-    for(int m = 0; m < MAX_ITERS; m++) {
-        if(m > iterations) return d;
-
-        vec3 a = mod(p*s, 2.0) - 1.0;
-        s *= 3.0;
-        vec3 r = abs(1.0 - 3.0 * abs(a));
-
-        float da = max(r.x,r.y);
-        float db = max(r.y,r.z);
-        float dc = max(r.z,r.x);
-        float c = (min(da,min(db,dc)) - 1.0) / s;
-
-        d = max(d,c);
-    }
-    return d;
-}
-
 float sphere(vec3 p, float s) {
     return length(p) - s;
-}
-
-float box(vec3 p, vec3 b) {
-    vec3 d = abs(p) - b;
-    return min(max(d.x,max(d.y,d.z)),0.0) + length(max(d,0.0));
 }
 
 float roundbox( vec3 p, vec3 b, float r ) {
@@ -192,9 +167,9 @@ vec3 lighting(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
 
     float occ = calc_AO(p, normal);
 
-    vec3 light_pos = vec3(4.0 * sin(time),
+    vec3 light_pos = vec3(4.0 * sin(time.x),
                           5.0,
-                          4.0 * cos(time));
+                          4.0 * cos(time.x));
     vec3 light_intensity = vec3(light);
 
     color += phong_contrib(k_d, k_s, alpha, p, eye,
@@ -206,7 +181,7 @@ vec3 lighting(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
         light
     );
 
-    color = mix(color, vec3(rand(vposition.xy * time)), noise);
+    color = mix(color, vec3(rand(vposition.xy * time.x)), noise);
 
     return color;
 }
@@ -243,12 +218,14 @@ vec3 ray_dir(float fieldOfView, vec2 size, vec2 fragCoord) {
 }
 
 void main() {
-    vec2 resolution = dimensions;
-    vec3 dir = ray_dir(45.0, resolution, vposition.xy * resolution);
+    vec3 dir = ray_dir(45.0, dimensions, vposition.xy * dimensions);
+
+    vec3 input_cam_pos = vec3(-1.0, 1.0, -1.0);
     vec3 cam_pos = vec3(
-        cos(mouse_pos.x / MOUSE_POS_DIV) * cos(mouse_pos.y / MOUSE_POS_DIV),
-        sin(mouse_pos.y / MOUSE_POS_DIV),
-        sin(mouse_pos.x / MOUSE_POS_DIV) * cos(mouse_pos.y / MOUSE_POS_DIV)
+        cos(input_cam_pos.x) * cos(input_cam_pos.y),
+        sin(input_cam_pos.y),
+        sin(input_cam_pos.x) * cos(input_cam_pos.y)
+
     ) * distance;
 
     mat4 view_mat = view_matrix(cam_pos, vec3(0.0), vec3(0.0, 1.0, 0.0));

@@ -8,5 +8,12 @@ edition = "2018"
 crate-type = ["cdylib"]
 
 [dependencies]
-infuse = "0.1.0"
+infuse = { path = "../infuse" } #"0.2"
 wasm-bindgen = "0.2.43"
+instant = { version = "0.1", features = [ "wasm-bindgen", "now" ] }
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  'Window',
+]
