@@ -20,7 +20,7 @@ const float size = 1.0;
 const vec2 mouse_pos = vec2(0.0, 0.0);
 const vec2 dimensions = vec2(1000.0, 1000.0);
 
-uniform vec4 time;
+uniform float time;
 
 varying vec3 vposition;
 varying vec3 vcolor;
@@ -30,7 +30,7 @@ float iter_cyl(vec3 p, float init_d) {
     float d = init_d;
     float s = 1.0;
     for(int i = 0; i < MAX_ITERS; i++) {
-        if(i > iterations + int(sin(time.x / 5.0) * 2.0)) return d;
+        if(i > iterations + int(sin(time / 5.0) * 2.0)) return d;
 
         p *= 3.0;
         s *= 3.0;
@@ -76,14 +76,14 @@ vec3 twist_pos(vec3 p) {
 }
 
 float scene(vec3 p) {
-    vec3 rp = twist_pos(rotateY(time.x + sin(time.x)) * p);
-    p = twist_pos(p * (0.14 + abs(tan(time.x / 4.0))));
+    vec3 rp = twist_pos(rotateY(time + sin(time)) * p);
+    p = twist_pos(p * (0.14 + abs(tan(time / 4.0))));
     return iter_cyl(
         p,
         roundbox(
             rp + disp(p, displ),
             vec3(size),
-            round + 0.8 + cos(time.x / 6.69) * 0.5
+            round + 0.8 + cos(time / 6.69) * 0.5
         )
     );
 }
@@ -167,9 +167,9 @@ vec3 lighting(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
 
     float occ = calc_AO(p, normal);
 
-    vec3 light_pos = vec3(4.0 * sin(time.x),
+    vec3 light_pos = vec3(4.0 * sin(time),
                           5.0,
-                          4.0 * cos(time.x));
+                          4.0 * cos(time));
     vec3 light_intensity = vec3(light);
 
     color += phong_contrib(k_d, k_s, alpha, p, eye,
@@ -178,10 +178,10 @@ vec3 lighting(vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 p, vec3 eye) {
     color = mix(
         color,
         color * occ * softshadow(p, normalize(light_pos), 0.02, 5.0),
-        light + tan(time.x / 7.2) * 4.0
+        light + tan(time / 7.2) * 4.0
     );
 
-    color = mix(color, vec3(rand(vposition.xy * time.x)), noise);
+    color = mix(color, vec3(rand(vposition.xy * time)), noise);
 
     return color;
 }
@@ -220,7 +220,7 @@ vec3 ray_dir(float fieldOfView, vec2 size, vec2 fragCoord) {
 void main() {
     vec3 dir = ray_dir(45.0, dimensions, vposition.xy * dimensions + (dimensions / 2.0));
 
-    vec3 input_cam_pos = vec3(-1.0, 1.0, -1.0) * cos(time.x / 25.0);
+    vec3 input_cam_pos = vec3(-1.0, 1.0, -1.0) * cos(time / 25.0);
     vec3 cam_pos = vec3(
         cos(input_cam_pos.x) * cos(input_cam_pos.y),
         sin(input_cam_pos.y),
